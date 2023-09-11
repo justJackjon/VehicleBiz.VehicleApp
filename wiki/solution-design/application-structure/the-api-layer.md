@@ -10,8 +10,7 @@ In the `VehicleBiz.VehicleApp.Api` project, the focus is on providing a clear in
 
 #### **1. Application Services**
 
-Though the domain encapsulates core business logic, the API layer employs application services to coordinate operations and interface with the domain layer. These services act as a bridge, handling tasks that don't fit within the domain's purview but are crucial for the API's functionality.
-
+In the API layer, application services bridge the gap between the domain's core business logic and necessary API operations, coordinating activities and ensuring seamless interfacing with the domain layer. These services, while respecting the domain's encapsulation of core logic, also encapsulate interactions with repositories in the [Data Access Layer](./the-data-access-layer.md). By doing so, they manage tasks and operations that, while not part of the core domain, are integral to the API's functionality.
 #### **2. DTOs (Data Transfer Objects)**
 
 DTOs serve to protect domain entities from direct external exposure. They define the structure of data exchanged between the API and its consumers, ensuring a consistent and controlled data flow which limits any exposure to internal implementation details.
@@ -42,6 +41,9 @@ VehicleBiz.VehicleApp.Api/
 |   |   |   |-- VehicleSearchDTO.cs
 |   |   |   |-- VehicleSearchValidator.cs
 |   |   |   |-- VehicleSearchMapperProfile.cs  # (if using AutoMapper)
+|   |   |   |-- Services/
+|   |   |   |   |-- IVehicleSearchService.cs
+|   |   |   |   |-- VehicleSearchService.cs  # (if a feature-specific service is warranted)
 |   |   |
 |   |   |-- GetVehicle/
 |   |   |   |-- GetVehicleFunction.cs
@@ -61,10 +63,14 @@ VehicleBiz.VehicleApp.Api/
 |   |   |   |-- UpdateVehicleMapperProfile.cs
 |   |   |
 |   |   |-- DeleteVehicle/
-|   |       |-- DeleteVehicleFunction.cs
+|   |   |   |-- DeleteVehicleFunction.cs
+|   |   |
+|   |   |-- SharedServices/
+|   |       |-- IVehicleCollectionService.cs
+|   |       |-- VehicleCollectionService.cs
 |   |
 |   |-- v2/
-|   |   |-- ...  # (features specific to v2)
+|   |   |-- ...  # (features and services specific to v2)
 |   |
 |   |-- ... # (other versions as they evolve)
 |
@@ -80,6 +86,24 @@ VehicleBiz.VehicleApp.Api/
 # > Features/
 #   The Features directory contains version-specific subdirectories, with each
 #   nested subdirectory representing a distinct feature or capability.
+#
+# > Features/**/Services/
+#   Feature-specific services and their interfaces are co-located within the
+#   parent directory of their associated feature. They cater to specific logic or
+#   operations pertinent only to that feature and can be introduced when the API
+#   requires granular control or a nuanced approach distinct from the general CRUD
+#   operations provided by the shared service. This structure promotes a clean
+#   separation of concerns while also offering flexibility for feature-specific
+#   requirements.
+#
+# > Features/<VERSION_DIR>/SharedServices/
+#   The proposed `VehicleCollectionService` is a shared service in acknowledgement
+#   of the straightforward CRUD-centric requirements of this API. Despite this, it
+#   remains in alignment with the Single Responsibility Principle (SRP) by
+#   managing a cohesive set of tasks. This reduces redundancy and ensures a
+#   consistent approach to managing the vehicle collection data. However, other
+#   feature-specific services can be introduced when a specific functionality or
+#   granular control is required, ensuring flexibility and adaptability.
 #
 # > Function Files:
 #   Each specific Azure Function is kept within it's respective feature directory,
