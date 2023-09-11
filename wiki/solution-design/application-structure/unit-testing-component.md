@@ -31,48 +31,66 @@ VehicleBiz.VehicleApp.UnitTests/
 |
 |-- Domain/
 |   |
-|   |-- VehicleTests/
+|   |-- Entities/
 |   |   |
-|   |   |-- EntityTests.cs
-|   |   |-- ValueObjectTests.cs
-|   |   |-- SpecificationTests.cs
-|   |   |-- FactoryTests.cs
+|   |   |-- VehicleTests.cs
+|   |
+|   |-- ValueObjects/
+|   |   |
+|   |   |-- ...  # (tests for any value objects, if implemented)
+|   |
+|   |-- Factories/
+|       |
+|       |-- ...  # (tests for any factories, if implemented)
 |
 |-- Api/
 |   |
-|   |-- v1/
-|   |   |
-|   |   |-- Features/
-|   |   |   |
-|   |   |   |-- SearchVehicles/
-|   |   |   |   |-- SearchVehiclesFunctionTests.cs
-|   |   |   |
-|   |   |   |-- GetVehicle/
-|   |   |   |   |-- GetVehicleFunctionTests.cs
-|   |   |   |
-|   |   |   |-- AddVehicle/
-|   |   |   |   |-- AddVehicleFunctionTests.cs
-|   |   |   |
-|   |   |   |-- UpdateVehicle/
-|   |   |   |   |-- UpdateVehicleFunctionTests.cs
-|   |   |   |
-|   |   |   |-- DeleteVehicle/
-|   |   |       |-- DeleteVehicleFunctionTests.cs
-|   |
-|   |-- v2/
-|   |   |
-|   |   |-- Features/
-|   |   |   |-- ...  # (tests for features specific to v2)
-|   |
-|   |-- ... # (other versions as they evolve)
+|   |-- Features/
+|       |
+|       |-- v1/
+|       |   |
+|       |   |-- SearchVehicles/
+|       |   |   |
+|       |   |   |-- SearchVehiclesFunctionTests.cs
+|       |   |   |-- VehicleSearchServiceTests.cs  # (if a feature-specific service is warranted)
+|       |   |
+|       |   |-- GetVehicle/
+|       |   |   |
+|       |   |   |-- GetVehicleFunctionTests.cs
+|       |   |
+|       |   |-- AddVehicle/
+|       |   |   |
+|       |   |   |-- AddVehicleFunctionTests.cs
+|       |   |
+|       |   |-- UpdateVehicle/
+|       |   |   |
+|       |   |   |-- UpdateVehicleFunctionTests.cs
+|       |   |
+|       |   |-- DeleteVehicle/
+|       |   |   |
+|       |   |   |-- DeleteVehicleFunctionTests.cs
+|       |   |
+|       |   |-- SharedServices/
+|       |       |
+|       |       |-- VehicleCollectionServiceTests.cs
+|       |
+|       |-- v2/
+|       |   |
+|       |   |-- ...  # (tests for features specific to v2)
+|       |
+|       |-- ... # (other versions as they evolve)
 |
 |-- DataAccess/
 |   |
-|   |-- Features/
-|   |   |
-|   |   |-- VehicleData/
-|   |       |-- VehicleRepositoryTests.cs
-|   |       |-- SpecificationTests.cs
+|   |-- Vehicles/
+|       |
+|       |-- Repositories/
+|       |   |
+|       |   |-- VehicleRepositoryTests.cs
+|       |
+|       |-- Specifications/
+|           |
+|           |-- VehicleSpecificationTests.cs
 |
 |-- TestUtilities/
 |   |
@@ -91,14 +109,13 @@ VehicleBiz.VehicleApp.UnitTests/
 |   |-- TestData/
 |       |
 |       |-- VehicleTestData.cs
-    
+
 # NOTES:
 # > Domain/
 #   Contains tests focused on domain logic, including entities, value objects,
-#   specifications, and factories. This domain logic should be consistent across
-#   versions of the API. Even if the API representation changes between versions,
-#   the core domain logic shouldn't. Therefore, there's no need to version tests for
-#   domain logic.
+#   and factories. This domain logic should be consistent across versions of the
+#   API. Even if the API representation changes between versions, the core domain
+#   logic shouldn't. Therefore, there is no need to version tests for domain logic.
 #
 # > Api/
 #   Houses tests for the API layer. The structure is broken down by API versions
@@ -107,7 +124,7 @@ VehicleBiz.VehicleApp.UnitTests/
 #   preserved.
 #
 # > DataAccess/
-#   Represents tests for the Data Access Layer, again reflecting its feature-centric 
+#   Represents tests for the Data Access Layer, again reflecting its feature-centric
 #   organisation. Note that the way data is accessed, stored, or manipulated in the
 #   backend should also remain consistent. Even if the API evolves to provide more
 #   functionality, the underlying data access mechanisms remain largely unchanged.
