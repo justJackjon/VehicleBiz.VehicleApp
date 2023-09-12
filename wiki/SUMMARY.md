@@ -38,3 +38,5 @@
 * [Proposed System Architecture Diagram](appendix/proposed-system-architecture-diagram.md)
 * [Simplified Network Request Diagram](appendix/simplified-network-request-diagram.md)
 * [Sample Vehicle Data](appendix/sample-vehicle-data.md)
+* [Vehicle Manufacturer Distribution](appendix/vehicle-manufacturer-distribution.md)
+* [Vehicle Type Distribution](appendix/vehicle-type-distribution.md)

@@ -16,20 +16,39 @@ The `Vehicle` entity is the primary domain entity, designed to encapsulate the e
 public class Vehicle
 {
     public string VIN { get; set; }
-    public string Manufacturer { get; set; }
+    public ManufacturerName Manufacturer { get; set; } // Enum for consistency over string; trades flexibility for controlled values
     public string Model { get; set; }
     public string Color { get; set; }
-    public string Fuel { get; set; }
-    public string Type { get; set; }
-    public string RegistrationMark { get; set; }
-    public DateTime RegistrationDate { get; set; }
+    public FuelType Fuel { get; set; } // Enum: vehicle's fuel type
+    public VehicleType Type { get; set; } // Enum: vehicle's category/type
+    public VehicleRegistration Registration { get; set; } // Value Object: vehicle's registration details
     public int Mileage { get; set; }
-    public double Valuation { get; set; }
-    public List<string> Features { get; set; }
+    public decimal Valuation { get; set; } // Vehicle value; decimal for precision
+    public IList<string> Features { get; set; } // List of features, as strings, for maximum system flexibility
 }
 ```
 
-#### 2. **Repository Interfaces**
+#### 2. **Value Objects**
+
+Value objects represent descriptive aspects of the domain with no conceptual identity. They are immutable, ensuring that their state cannot be altered after they're created, which enhances consistency and reduces potential side effects.
+
+For example, a `VehicleRegistration` struct could encapsulate the vehicle's registration details:
+
+```csharp
+public struct VehicleRegistration
+{
+    public string RegistrationMark { get; private set; }
+    public DateTime RegistrationDate { get; private set; }
+
+    public VehicleRegistration(string registrationMark, DateTime registrationDate)
+    {
+        RegistrationMark = registrationMark;
+        RegistrationDate = registrationDate;
+    }
+}
+```
+
+#### 3. **Repository Interfaces**
 
 Repository interfaces, housed within the domain layer, serve as an abstraction over the concrete data access logic. They ensure the domain layer remains agnostic to specific data storage or retrieval mechanisms. This encapsulation aligns with the principle of inversion of control, where the domain outlines the contract, and [the data access layer](the-data-access-layer.md) provides the specific implementation.
 
@@ -45,7 +64,7 @@ public interface IVehicleRepository : IRepository<Vehicle>
 }
 ```
 
-#### 3. **Enums**
+#### 4. **Enums**
 
 Enumerations, specifically `Fuel` and `Type`, offer a standardised way to represent distinct sets of values related to vehicles. They ensure that specific attributes, like the type of fuel a vehicle uses or its category, are consistently defined and used throughout the application.
 
@@ -69,7 +88,7 @@ public enum Type
 }
 ```
 
-#### 4. **Exceptions**
+#### 5. **Exceptions**
 
 Custom exceptions offer precision in representing domain-specific errors. They allow the system to provide clear and targeted feedback. A `DuplicateVehicleException`, for example, is able to immediately communicate an attempt to register a vehicle with an already existing VIN.
 
@@ -94,9 +113,9 @@ VehicleBiz.VehicleApp.Domain/
 |   |
 |   |-- Vehicle.cs
 |
-|-- ValueObjects/
+|-- ValueObjects/  # NOTE: Sample dataset (see appendix 3) suggests limited need.
 |   |
-|   |-- ...  # Placeholder; sample dataset (see appendix 3) suggests limited need.
+|   |-- VehicleRegistration.cs
 |
 |-- Interfaces/
 |   |
@@ -132,7 +151,7 @@ VehicleBiz.VehicleApp.Domain/
 #
 # > Domain Integrity:
 #   Given the simplicity of the data structure in the sample dataset (refer to
-#   appendix 3), it is deemed that dedicated value objects may not be necessary.
+#   appendix 3), it is deemed that dedicated value objects are considered optional.
 #   That being said, by typically separating value objects and entities, the core
 #   domain maintains its integrity. This clear separation would reinforce the DDD
 #   principle of distinguishing between objects that define identity (entities) and

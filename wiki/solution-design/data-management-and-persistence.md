@@ -26,27 +26,57 @@ Given the NoSQL nature of Cosmos DB, data will be stored in a document-based for
 
 ### **Cosmos DB Partitioning Strategy**
 
-The system will employ the Vehicle Identification Number (VIN) as the partition key for Cosmos DB. The choice of the VIN as the partition key offers several advantages, but also comes with its own set of challenges:
+Selecting an appropriate partition key is crucial in ensuring optimal performance and cost-efficiency in Cosmos DB. The chosen partition key should facilitate the most frequent access patterns of the application while also ensuring a balanced distribution of data. Based on the provided [user stories](../functional-requirements/user-stories.md) and the [analysis of the sample dataset](../appendix/vehicle-manufacturer-distribution.md), **Manufacturer** emerges as a suitable partition key, aligning well with anticipated search behaviours and providing an even data distribution. The advantages, challenges and mitigation strategies related to this decision are all detailed below.
+
+#### **Dataset Analysis**:
+
+The dataset dataset indicates a fairly even distribution of vehicles among different manufacturers and vehicle types. A detailed breakdown of [manufacturer distribution](../appendix/vehicle-manufacturer-distribution.md) and [vehicle type distribution](../appendix/vehicle-type-distribution.md) are both available in the appendix.
 
 #### **Advantages**:
 
-* **Uniqueness**: Each VIN is unique to a specific vehicle, ensuring that data is evenly distributed across partitions, avoiding hot partitions.
-* **Efficient Data Access**: Queries that filter by the VIN can be directed to the specific partition where the data resides, resulting in faster query performance.
-* **Scalability**: As the dataset grows, Cosmos DB can distribute these partitions across multiple physical partitions and servers, ensuring that the system remains scalable and responsive.
-* **Consistent Performance**: Using the VIN, which is a frequently accessed attribute, ensures that read and write operations are spread evenly, maintaining consistent performance.
+- **Efficient Data Access**: Queries that filter by manufacturer, a key search criterion based on the user stories, can be directed to the specific partition where the data resides, resulting in faster query performance.
+- **Scalability**: As the dataset grows, Cosmos DB can distribute these partitions across multiple physical partitions and servers, ensuring that the system remains scalable and responsive.
+- **Consistent Performance**: The [even distribution](../appendix/vehicle-manufacturer-distribution.md) of manufacturers in the dataset ensures that read and write operations are spread evenly across partitions.
+- **Alignment with User Stories**: Given the user stories, many operations revolve around properties of vehicles, with manufacturer being a primary attribute of interest.
 
 #### **Challenges**:
 
-* **Cross-Partition Queries**: Given the [user stories](../functional-requirements/user-stories.md), there will be scenarios where users might want to search vehicles based on attributes other than VIN, like manufacturer, model, or colour. Such queries can span multiple partitions, potentially affecting performance and costing more [RUs](https://learn.microsoft.com/en-us/azure/cosmos-db/request-units).
-* **Data Distribution**: While the VIN ensures uniqueness, if certain VIN ranges are accessed more frequently than others, this could lead to hot partitions.
+- **Cross-Partition Queries**: Users might want to search vehicles based on attributes other than the manufacturer. Such queries can span multiple partitions, potentially affecting performance and incurring higher [RU costs](https://learn.microsoft.com/en-us/azure/cosmos-db/request-units).
+- **Unknown Usage Patterns**: Without historical usage data, it is challenging to predict the most common access patterns. It is therefore uncertain if users will prioritise manufacturer (brand loyalty) or vehicle type (utilitarian approach) in their searches.
 
 #### **Mitigation Strategies**:
 
-* **Indexing**: By optimising indexes for the search criteria mentioned in the [user stories](../functional-requirements/user-stories.md), such as manufacturer, model, and colour, the system can efficiently handle cross-partition queries. This ensures that even when querying across partitions, the performance remains optimal.
-* **Future Caching Layer**: While not proposed within this initial design spec, introducing a caching layer in the future can significantly reduce the need to query the database directly, especially for more frequently accessed data. This can further optimise performance and reduce costs.
-* **Monitoring and Adjusting**: Regularly monitoring the access patterns and making necessary adjustments, like re-partitioning or introducing new indexes, can help in maintaining consistent performance.
+- **Indexing**: Optimising indexes for other common search criteria, such as model and colour, can help efficiently manage cross-partition queries.
+- **Future Caching Layer**: While not proposed within this initial design spec, introducing a caching layer in the future can significantly reduce the need to query the database directly, especially for more frequently accessed data. This can further optimise performance and reduce costs.
+- **Monitor & Adjust**: Regularly monitor access patterns and adjust as necessary, such as introducing new indexes or even reconsidering the partition key based on observed user behaviour.
+  
+#### **Potential Dual Database Strategy**:
 
-By being aware of these challenges and proactively planning for them, the system is designed to provide efficient and scalable vehicle data management.
+In a hypothetical scenario where a large volume of vehicles is in the inventory, it is reasonable to hypothesise that there might be a significant emphasis on facilitating efficient searches for consumers - to such an extent that vehicle search would be prioritised over other database operations. In a real-world scenario, close collaboration with the product team would be essential to ascertain business needs and priorities. Their insights, combined with user feedback and technical feasibility, would inform architectural decisions.
+
+In the absence of this product-led approach, the decision to use the manufacturer as the partition key is based on the assumption that there will be more consumers ('car buyers') searching for vehicles than the number of database operations business stakeholders ('sales representatives' and 'inventory managers') will be performing, such as adding or editing. It is however possible, that this hypothetical car sales business would wish to prioritise performance on *all* database operations, and so to address these varied needs, a dual database approach emerges as a potential strategy. **However, it is important to note that implementing this without careful consideration might be a case of *premature optimisation*, especially for this demo application.**
+
+With the caveats above explained, an overview of this potential strategy is presented below:
+
+- **Read-Optimised Database**: Configured specifically to cater to the vehicle search requirements of 'car buyers', as presented in the [user stories](../functional-requirements/user-stories.md). By being optimised for diverse search criteria, this database would be designed to enable users to efficiently find vehicles matching their preferences. The 'Manufacturer' partitioning decision aligns well with this, serving a primary search criterion.
+
+- **Write-Optimised Database**: Configured for performant data additions and edits, this database is designed to handle regular interactions of business stakeholders with vehicle data. Rapid write operations are prioritised, allowing stakeholders like 'sales representatives' and 'inventory managers' to manage the vehicle inventory with greater efficiency.
+
+Both databases would be housed within Azure Cosmos DB, with potential utilisation of the Change Feed for data synchronisation. Implementing this approach would come with some additional considerations, for example:
+
+- **Increased Costs**: Managing two databases introduces added expense.
+
+- **Operational Complexity**: Ensuring consistent data across both databases presents greater operational complexity, especially if regular interactions of staff with vehicle data is anticipated.
+
+- **Data Propagation Delay**: Potential for lag time between updating a vehicle's data and its availability for consumer search is introduced.
+
+While the dual database strategy might theoretically enhance both search efficiency for consumers and data management operations for business stakeholders, the complexities and costs introduced, especially for this demo application, would warrant careful scrutiny.
+
+#### **Note on Assumptions and Future Adjustments**:
+
+The current decision to use the manufacturer for the partition key is rooted in the analysis of the available dataset and assumptions about user behaviour. In the real world, post-launch, the system would be closely monitored for usage patterns. Depending on the observed query patterns, the partitioning strategy might be reconsidered. While adjusting a partitioning strategy post-launch presents challenges, especially in live environments, early adjustments can be more manageable than later ones.
+
+In this demo application, assumptions are made due to a lack of real-world usage data. The decision to choose the manufacturer as the partition key is based on the hypothesis that consumers might favour brand loyalty. However, it is equally plausible that they might lean towards a more utilitarian approach, basing purchasing decisions on functional requirements like vehicle type. Only with real-world user data can a fully informed decision be made.
 
 ### Data Backup & Recovery
 
